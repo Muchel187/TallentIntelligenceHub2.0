@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "projectName": "NOBA EXPERTS",
+  "projectType": "web-app",
+  "language": "TypeScript",
+  "created": "2025-10-06",
+  "lastUpdated": "2025-10-06",
+  "phase": "initialization",
+  "stage": {
+    "current": "skeleton",
+    "next": "prototype",
+    "progression": ["skeleton", "prototype", "mvp", "production", "scale"]
+  },
+  "structure": {
+    "version": "ai-optimized-final",
+    "style": "lean",
+    "approach": "progressive"
+  },
+  "stack": {
+    "language": "TypeScript",
+    "frontend": "Next.js 14 (App Router)",
+    "backend": "Next.js API Routes + NestJS patterns",
+    "database": "PostgreSQL",
+    "orm": "Prisma",
+    "auth": "NextAuth.js v5",
+    "payment": "Stripe",
+    "ai": "OpenAI GPT-4 Turbo",
+    "email": "Resend",
+    "pdf": "Puppeteer",
+    "storage": "AWS S3 / Cloudflare R2",
+    "cache": "Redis",
+    "testing": "Vitest + Playwright",
+    "deployment": "Vercel (Frontend) + Railway (Backend)"
+  },
+  "features": {
+    "implemented": [
+      "project-structure",
+      "documentation-skeleton"
+    ],
+    "inProgress": [
+      "next.js-setup",
+      "database-schema"
+    ],
+    "planned": [
+      "big-five-test-flow",
+      "authentication",
+      "payment-integration",
+      "ai-chat",
+      "company-management"
+    ],
+    "backlog": [
+      "mobile-app",
+      "advanced-analytics",
+      "integrations"
+    ]
+  },
+  "metrics": {
+    "files": 8,
+    "tests": 0,
+    "coverage": 0,
+    "todos": 10
+  },
+  "requirements": {
+    "source": "ANFORDERUNGSANALYSE_NEUENTWICKLUNG.md",
+    "userStories": 49,
+    "nfrCount": 30,
+    "phases": 7,
+    "totalWeeks": 36
+  },
+  "nextSteps": [
+    "Run ai:verify to check setup",
+    "Initialize Next.js 14 with TypeScript",
+    "Set up PostgreSQL + Prisma",
+    "Create database schema (23 entities)",
+    "Implement Big Five scoring algorithm"
+  ]
+}

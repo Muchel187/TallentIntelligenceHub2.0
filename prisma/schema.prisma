@@ -1,0 +1,463 @@
+// NOBA EXPERTS - Database Schema
+// Based on ANFORDERUNGSANALYSE_NEUENTWICKLUNG.md
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTHENTICATION & USERS (NextAuth.js v5 compatible)
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // Argon2 hash (null for OAuth users)
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  testLinks     UserTestLink[]
+  testProgress  TestProgress[]
+  companyAdmins CompanyAdmin[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================================================
+// B2C - TEST RESULTS & USER DATA
+// ============================================================================
+
+model TestResult {
+  id                 Int       @id @default(autoincrement())
+  testId             String    @unique @map("test_id")
+  completedAt        DateTime  @default(now()) @map("completed_at")
+  scores             Json // { O: number, C: number, E: number, A: number, N: number }
+  rawAnswers         Json      @map("raw_answers") // Array<{ questionId: number, score: number }>
+  userDetails        Json      @map("user_details") // { age, currentJob, industry, careerGoal, etc. }
+  email              String
+  paid               Boolean   @default(false)
+  voucher            String?
+  reportHtml         String?   @db.Text @map("report_html")
+  reportGeneratedAt  DateTime? @map("report_generated_at")
+
+  // Relations
+  userLinks     UserTestLink[]
+  chatHistory   ChatHistory[]
+  chatAccess    ChatAccess[]
+  employeeTests EmployeeTest[]
+
+  @@index([testId])
+  @@index([email])
+  @@index([completedAt])
+  @@map("test_results")
+}
+
+model UserTestLink {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  testId    String   @map("test_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testResult TestResult @relation(fields: [testId], references: [testId], onDelete: Cascade)
+
+  @@unique([userId, testId])
+  @@index([userId])
+  @@index([testId])
+  @@map("user_test_links")
+}
+
+model TestProgress {
+  id                   Int      @id @default(autoincrement())
+  userId               String   @map("user_id")
+  progressId           String   @unique @map("progress_id")
+  currentQuestionIndex Int      @map("current_question_index")
+  answers              Json // Array<{ questionId: number, score: number }>
+  userDetails          Json?    @map("user_details")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("test_progress")
+}
+
+model ChatHistory {
+  id        Int      @id @default(autoincrement())
+  testId    String   @map("test_id")
+  role      String // 'user' | 'assistant' | 'system'
+  content   String   @db.Text
+  timestamp DateTime @default(now())
+
+  testResult TestResult @relation(fields: [testId], references: [testId], onDelete: Cascade)
+
+  @@index([testId])
+  @@index([timestamp])
+  @@map("chat_history")
+}
+
+model ChatAccess {
+  id               Int      @id @default(autoincrement())
+  testId           String   @map("test_id")
+  email            String
+  accessGrantedAt  DateTime @default(now()) @map("access_granted_at")
+  expiresAt        DateTime @map("expires_at")
+
+  testResult TestResult @relation(fields: [testId], references: [testId], onDelete: Cascade)
+
+  @@unique([testId, email])
+  @@map("chat_access")
+}
+
+// ============================================================================
+// B2B - COMPANIES
+// ============================================================================
+
+model Company {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  domain             String?
+  industry           String?
+  size               String? // '1-10' | '10-50' | '50-200' | '200-1000' | '1000+'
+  subscriptionStatus String   @default("trial") @map("subscription_status") // 'trial' | 'active' | 'suspended' | 'cancelled'
+  subscriptionPlan   String   @default("basic") @map("subscription_plan") // 'basic' | 'professional' | 'enterprise'
+  maxEmployees       Int      @default(10) @map("max_employees")
+  billingEmail       String?  @map("billing_email")
+  logo               String?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  admins         CompanyAdmin[]
+  departments    Department[]
+  employees      Employee[]
+  objectives     Objective[]
+  moodSurveys    MoodSurvey[]
+  developmentPlans DevelopmentPlan[]
+  teamAnalytics  TeamAnalytics[]
+  integrations   Integration[]
+  webhooks       Webhook[]
+  integrationLogs IntegrationLog[]
+  invitations    EmployeeInvitation[]
+
+  @@index([domain])
+  @@map("companies")
+}
+
+model CompanyAdmin {
+  id          Int      @id @default(autoincrement())
+  companyId   Int      @map("company_id")
+  userId      String   @map("user_id")
+  email       String
+  role        String // 'owner' | 'admin' | 'hr_manager' | 'team_lead'
+  permissions Json     @default("[]") // Array of permission strings
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([email])
+  @@index([companyId])
+  @@map("company_admins")
+}
+
+model Department {
+  id                 Int     @id @default(autoincrement())
+  companyId          Int     @map("company_id")
+  name               String
+  description        String?
+  managerId          String? @map("manager_id")
+  parentDepartmentId Int?    @map("parent_department_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Self-relation for hierarchical departments
+  parentDepartment Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  subDepartments   Department[] @relation("DepartmentHierarchy")
+
+  // Relations
+  employees      Employee[]
+  objectives     Objective[]
+  teamAnalytics  TeamAnalytics[]
+
+  @@map("departments")
+}
+
+model Employee {
+  id               Int       @id @default(autoincrement())
+  companyId        Int       @map("company_id")
+  departmentId     Int?      @map("department_id")
+  email            String
+  firstName        String    @map("first_name")
+  lastName         String    @map("last_name")
+  position         String?
+  level            String? // 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'executive'
+  employmentType   String?   @map("employment_type") // 'full_time' | 'part_time' | 'contract' | 'intern'
+  startDate        DateTime? @map("start_date")
+  testId           String?   @map("test_id")
+  testCompleted    Boolean   @default(false) @map("test_completed")
+  testCompletedAt  DateTime? @map("test_completed_at")
+  lastTestReminder DateTime? @map("last_test_reminder")
+  status           String    @default("active") // 'active' | 'inactive' | 'on_leave'
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  // Relations
+  employeeTests     EmployeeTest[]
+  moodSurveys       MoodSurvey[]
+  developmentPlans  DevelopmentPlan[]
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@index([email])
+  @@index([testId])
+  @@index([departmentId])
+  @@map("employees")
+}
+
+model EmployeeInvitation {
+  id         Int       @id @default(autoincrement())
+  companyId  Int       @map("company_id")
+  email      String
+  token      String    @unique
+  expiresAt  DateTime  @map("expires_at")
+  acceptedAt DateTime? @map("accepted_at")
+  createdBy  String    @map("created_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("employee_invitations")
+}
+
+model EmployeeTest {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int      @map("employee_id")
+  testId      String   @map("test_id")
+  completedAt DateTime @map("completed_at")
+  scores      Json // { O, C, E, A, N }
+
+  employee   Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  testResult TestResult @relation(fields: [testId], references: [testId], onDelete: Cascade)
+
+  @@map("employee_tests")
+}
+
+// ============================================================================
+// B2B - HR FEATURES
+// ============================================================================
+
+model Objective {
+  id           Int       @id @default(autoincrement())
+  companyId    Int       @map("company_id")
+  departmentId Int?      @map("department_id")
+  title        String
+  description  String?   @db.Text
+  targetDate   DateTime  @map("target_date")
+  status       String    @default("not_started") // 'not_started' | 'in_progress' | 'completed' | 'cancelled'
+  progress     Int       @default(0) // 0-100
+  createdBy    String    @map("created_by")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  @@map("objectives")
+}
+
+model MoodSurvey {
+  id         Int      @id @default(autoincrement())
+  companyId  Int      @map("company_id")
+  employeeId Int      @map("employee_id")
+  moodScore  Int      @map("mood_score") // 1-10
+  feedback   String?  @db.Text
+  surveyDate DateTime @map("survey_date")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("mood_surveys")
+}
+
+model DevelopmentPlan {
+  id             Int      @id @default(autoincrement())
+  companyId      Int      @map("company_id")
+  employeeId     Int      @map("employee_id")
+  skillGaps      Json     @default("[]") @map("skill_gaps") // Array of strings
+  trainingPlan   Json     @map("training_plan") // { courses: string[], timeline: string }
+  careerPath     String   @db.Text @map("career_path")
+  nextReviewDate DateTime @map("next_review_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("development_plans")
+}
+
+model TeamAnalytics {
+  id                   Int       @id @default(autoincrement())
+  companyId            Int       @map("company_id")
+  departmentId         Int?      @map("department_id")
+  analysisDate         DateTime  @map("analysis_date")
+  totalEmployees       Int       @map("total_employees")
+  testsCompleted       Int       @map("tests_completed")
+  avgOpenness          Decimal   @map("avg_openness") @db.Decimal(5, 2)
+  avgConscientiousness Decimal   @map("avg_conscientiousness") @db.Decimal(5, 2)
+  avgExtraversion      Decimal   @map("avg_extraversion") @db.Decimal(5, 2)
+  avgAgreeableness     Decimal   @map("avg_agreeableness") @db.Decimal(5, 2)
+  avgNeuroticism       Decimal   @map("avg_neuroticism") @db.Decimal(5, 2)
+  moodScore            Decimal?  @map("mood_score") @db.Decimal(5, 2)
+  engagementLevel      Decimal?  @map("engagement_level") @db.Decimal(5, 2)
+  retentionRisk        Decimal?  @map("retention_risk") @db.Decimal(5, 2)
+  innovationPotential  Decimal?  @map("innovation_potential") @db.Decimal(5, 2)
+  leadershipReadiness  Decimal?  @map("leadership_readiness") @db.Decimal(5, 2)
+  teamStrengths        Json      @default("[]") @map("team_strengths") // Array of strings
+  teamChallenges       Json      @default("[]") @map("team_challenges") // Array of strings
+  recommendations      Json      @default("[]") // Array of strings
+  createdAt            DateTime  @default(now()) @map("created_at")
+
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  @@map("team_analytics")
+}
+
+// ============================================================================
+// B2B - INTEGRATIONS
+// ============================================================================
+
+model Integration {
+  id                Int       @id @default(autoincrement())
+  companyId         Int       @map("company_id")
+  integrationType   String    @map("integration_type") // 'slack' | 'microsoft' | 'google' | 'personio' | 'jira' | 'other'
+  integrationName   String    @map("integration_name")
+  credentials       String    @db.Text // AES-256 encrypted JSON
+  config            Json      @default("{}") // { syncFrequency, enabledFeatures, etc. }
+  isActive          Boolean   @default(false) @map("is_active")
+  connectionStatus  String    @default("disconnected") @map("connection_status") // 'connected' | 'disconnected' | 'error'
+  lastSyncAt        DateTime? @map("last_sync_at")
+  lastError         String?   @db.Text @map("last_error")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  createdBy         String    @map("created_by")
+
+  company Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  webhooks Webhook[]
+  integrationLogs IntegrationLog[]
+
+  @@unique([companyId, integrationType])
+  @@index([companyId])
+  @@index([integrationType])
+  @@map("integrations")
+}
+
+model Webhook {
+  id               Int       @id @default(autoincrement())
+  companyId        Int       @map("company_id")
+  integrationId    Int       @map("integration_id")
+  webhookUrl       String    @map("webhook_url") @db.VarChar(500)
+  webhookSecret    String    @map("webhook_secret")
+  events           Json      @default("[]") // Array: ["employee.added", "test.completed"]
+  isActive         Boolean   @default(true) @map("is_active")
+  lastTriggeredAt  DateTime? @map("last_triggered_at")
+  failureCount     Int       @default(0) @map("failure_count")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@map("webhooks")
+}
+
+model IntegrationLog {
+  id            Int      @id @default(autoincrement())
+  companyId     Int      @map("company_id")
+  integrationId Int      @map("integration_id")
+  action        String   @db.VarChar(100)
+  details       Json
+  status        String // 'success' | 'error'
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@map("integration_logs")
+}
+
+// ============================================================================
+// VOUCHERS & ADMIN
+// ============================================================================
+
+model Voucher {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  description String?  @db.Text
+  validUntil  DateTime @map("valid_until")
+  maxUses     Int      @map("max_uses")
+  currentUses Int      @default(0) @map("current_uses")
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("vouchers")
+}

@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+vendor/
+*.lock
+yarn.lock
+pnpm-lock.yaml
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Testing
+coverage/
+test/reports/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Temporary
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+postgres-data/
+
+# Prisma
+prisma/migrations/**/migration_lock.toml
+
+/src/generated/prisma

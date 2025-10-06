@@ -1,0 +1,629 @@
+I need you to create a new AI-optimized project from scratch with a LEAN initial setup.
+
+PROJECT_NAME: Talent Intelligenz Hub 2.0
+PROJECT_TYPE: web-app
+PRIMARY_LANGUAGE: typescript
+
+Please create a complete AI-optimized development environment following these STRICT guidelines:
+
+## CORE REQUIREMENTS
+- CLAUDE.md should be 30-50 lines MAX (just an index to other docs)
+- Create separate docs: COMMANDS.md, TESTING.md, FEATURES.md, TROUBLESHOOTING.md
+- Each document has ONE clear purpose
+- Put detailed patterns in .ai/patterns.md
+- Focus on structure over documentation initially
+- If PROJECT_TYPE is web-app, make it MOBILE-FIRST and PWA-ready
+
+## 1. Create Directory Structure:
+```
+PROJECT_NAME/                   # Use actual project name, not "test"!
+├── .ai/                        # AI context and metadata
+│   ├── context.json           # Project state tracking
+│   ├── patterns.md            # Code patterns (detailed examples here)
+│   ├── decisions.log          # Technical decisions log
+│   └── blockers.md            # Known limitations
+├── src/
+│   ├── core/                  # Core business logic
+│   ├── services/              # Service layer
+│   ├── api/                   # API endpoints
+│   ├── utils/                 # Utilities
+│   └── types/                 # Type definitions
+├── test/
+│   ├── unit/                  # Unit tests
+│   ├── integration/           # Integration tests
+│   ├── e2e/                   # End-to-end tests
+│   ├── smoke/                 # Quick verification
+│   ├── ai-verify/             # Structure verification
+│   └── config/                # Test configuration
+├── public/                     # Static assets (if web-app)
+│   ├── manifest.json          # PWA manifest (if web-app)
+│   └── icons/                 # PWA icons (if web-app)
+├── database/
+│   ├── migrations/            # Database migrations
+│   └── README.md              # Migration instructions
+├── .scaffold/                  # Code templates
+│   ├── service/               # Service template
+│   ├── api/                   # API template
+│   ├── component/             # Component template (if web-app)
+│   └── test/                  # Test template
+├── scripts/
+│   ├── ai/                    # AI-specific tools
+│   │   ├── verify-environment.[ext]
+│   │   ├── project-status.[ext]
+│   │   └── suggest-next.[ext]
+│   └── setup/                 # Setup scripts
+├── config/                     # Configuration files
+│   └── .gitkeep              # Empty initially
+└── docs/                       # Technical documentation
+    ├── SETUP.md               # Detailed setup guide
+    └── TECHNICAL.md           # Technical details (grows later)
+```
+
+## 2. Create ULTRA-LEAN CLAUDE.md (30-40 lines MAX):
+
+```markdown
+# PROJECT_NAME - Essential Guide
+
+## Core Principles
+1. **Check Before Creating** - Verify files/directories exist first
+2. **Test First** - Write tests before implementation
+3. **Single Source of Truth** - No duplication
+4. **Iterate Incrementally** - Small, verified changes
+[IF web-app: 5. **Mobile First** - Design for mobile, enhance for desktop]
+
+## Project Structure
+\`\`\`
+PROJECT_NAME/
+├── .ai/                    # AI context
+├── src/                    # Source code
+├── test/                   # Test files
+├── public/                 # Static assets [IF web-app]
+├── database/              # Migrations
+├── scripts/               # Utilities
+└── docs/                  # Documentation
+\`\`\`
+
+## Quick Reference
+- **Commands**: See \`COMMANDS.md\`
+- **Testing**: See \`TESTING.md\`
+- **Features**: See \`FEATURES.md\`
+- **Troubleshooting**: See \`TROUBLESHOOTING.md\`
+- **Technical Details**: See \`docs/TECHNICAL.md\`
+
+## Current State
+- **Type**: PROJECT_TYPE
+- **Language**: PRIMARY_LANGUAGE
+- **Stage**: Skeleton → Prototype → MVP → Production
+- **Next Steps**: Run \`npm run ai:next\`
+
+---
+*AI Context: \`.ai/\` | Patterns: \`.ai/patterns.md\` | Decisions: \`.ai/decisions.log\`*
+```
+
+## 3. Create COMMANDS.md (All commands in one place):
+
+```markdown
+# Commands
+
+## AI Development
+\`\`\`bash
+npm run ai:verify        # Verify environment setup
+npm run ai:status        # Show project health
+npm run ai:next          # Get next step suggestions
+\`\`\`
+
+## Development
+\`\`\`bash
+npm run dev              # Start development server
+npm run build            # Build for production
+npm run preview          # Preview production build
+\`\`\`
+
+## Testing
+\`\`\`bash
+npm run test             # Run all tests
+npm run test:smoke       # Quick smoke tests (30s)
+npm run test:unit        # Unit tests only
+npm run test:e2e         # End-to-end tests
+npm run test:coverage    # Generate coverage report
+\`\`\`
+
+[IF web-app:]
+## PWA
+\`\`\`bash
+npm run pwa:check        # Check PWA readiness
+npm run pwa:icons        # Generate PWA icons
+\`\`\`
+
+## Database
+\`\`\`bash
+npm run db:migrate       # Run migrations (when DB added)
+npm run db:rollback      # Rollback last migration
+\`\`\`
+
+## Utilities
+\`\`\`bash
+npm run clean            # Clean build artifacts
+npm run lint             # Run linter
+npm run format           # Format code
+\`\`\`
+
+---
+*Commands will be added as features grow*
+```
+
+## 4. Create TESTING.md:
+
+```markdown
+# Testing Strategy
+
+## Philosophy
+- **No Mocks** - Test with real implementations when possible
+- **Progressive** - Add tests as features grow
+- **Fast Feedback** - Smoke tests run in <30 seconds
+
+## Test Structure
+\`\`\`
+test/
+├── smoke/          # Quick verification (always run first)
+├── unit/           # Business logic tests
+├── integration/    # Service interaction tests
+├── e2e/           # User workflow tests
+└── ai-verify/     # Structure verification
+\`\`\`
+
+## Test Types
+
+### Smoke Tests (30 seconds)
+- Project structure exists
+- Configuration valid
+- Basic dependencies work
+
+### Unit Tests
+- Individual functions/methods
+- Business logic
+- No external dependencies
+
+### Integration Tests
+- Service interactions
+- API endpoints
+- Database operations
+
+### E2E Tests
+- Complete user workflows
+- Browser automation [IF web-app]
+- Full system tests
+
+## Current Coverage
+- [ ] Smoke tests - Basic structure
+- [ ] Unit tests - 0% (no features yet)
+- [ ] Integration - 0% (no integrations yet)
+- [ ] E2E tests - 0% (no UI yet)
+
+---
+*See \`.ai/patterns.md\` for test patterns*
+```
+
+## 5. Create FEATURES.md:
+
+```markdown
+# Features
+
+## Implemented ✅
+- [x] AI-optimized project structure
+- [x] Development environment setup
+[IF web-app: - [x] PWA manifest configuration]
+
+## In Progress 🚧
+- [ ] [Features currently being worked on]
+
+## Planned 📋
+- [ ] [Next features to implement]
+
+## Backlog 💡
+- [ ] [Future ideas and possibilities]
+
+## Feature Requests
+- [ ] [User requested features]
+
+---
+*Update as features are added*
+```
+
+## 6. Create TROUBLESHOOTING.md:
+
+```markdown
+# Troubleshooting
+
+## Quick Fixes
+
+### Environment Issues
+*No issues documented yet*
+
+### Build Errors
+*No issues documented yet*
+
+### Test Failures
+*No issues documented yet*
+
+### Runtime Errors
+*No issues documented yet*
+
+## How to Debug
+
+1. Check environment: \`npm run ai:verify\`
+2. Check status: \`npm run ai:status\`
+3. Check logs: \`npm run dev -- --verbose\`
+4. Clear cache: \`npm run clean\`
+
+---
+*Document issues and solutions as encountered*
+```
+
+## 7. Create .ai/context.json with growth tracking:
+
+```json
+{
+  "version": "1.0.0",
+  "projectName": "PROJECT_NAME",
+  "projectType": "PROJECT_TYPE",
+  "language": "PRIMARY_LANGUAGE",
+  "created": "CURRENT_DATE",
+  "lastUpdated": "CURRENT_DATE",
+  "phase": "initialization",
+  "stage": {
+    "current": "skeleton",
+    "next": "prototype",
+    "progression": ["skeleton", "prototype", "mvp", "production", "scale"]
+  },
+  "structure": {
+    "version": "ai-optimized-final",
+    "style": "lean",
+    "approach": "progressive"
+  },
+  "stack": {
+    "language": "PRIMARY_LANGUAGE",
+    "framework": null,
+    "database": null,
+    "testing": null,
+    "deployment": null
+  },
+  "features": {
+    "implemented": ["project-structure"],
+    "inProgress": [],
+    "planned": [],
+    "backlog": []
+  },
+  "metrics": {
+    "files": 0,
+    "tests": 0,
+    "coverage": 0,
+    "todos": 0
+  },
+  "nextSteps": [
+    "Run ai:verify to check setup",
+    "Run ai:next for guidance",
+    "Choose framework when needed"
+  ]
+}
+```
+
+## 8. Create .ai/patterns.md with scalable patterns:
+
+```markdown
+# Code Patterns
+
+## Progressive Enhancement
+Start simple, add complexity only when needed:
+
+### Level 1: Make it work
+\`\`\`PRIMARY_LANGUAGE
+function calculatePrice(items) {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+\`\`\`
+
+### Level 2: Make it right
+\`\`\`PRIMARY_LANGUAGE
+interface Item {
+  price: number;
+  quantity: number;
+}
+
+function calculatePrice(items: Item[]): number {
+  return items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+}
+\`\`\`
+
+### Level 3: Make it scale
+\`\`\`PRIMARY_LANGUAGE
+class PriceCalculator {
+  private cache = new Map();
+
+  calculate(items: Item[]): number {
+    const key = this.getCacheKey(items);
+    if (this.cache.has(key)) {
+      return this.cache.get(key);
+    }
+    // ... calculation logic
+  }
+}
+\`\`\`
+
+## Service Pattern
+\`\`\`PRIMARY_LANGUAGE
+// Start with functions
+export async function getUser(id: string) {
+  // implementation
+}
+
+// Evolve to classes when needed
+export class UserService {
+  constructor(private db: Database) {}
+
+  async getUser(id: string) {
+    // implementation
+  }
+}
+\`\`\`
+
+## Error Handling
+\`\`\`PRIMARY_LANGUAGE
+// Consistent error structure
+export interface Result<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+export function handleError(error: unknown): Result<never> {
+  return {
+    success: false,
+    error: error instanceof Error ? error.message : 'Unknown error'
+  };
+}
+\`\`\`
+
+[IF web-app:]
+## Mobile-First CSS
+\`\`\`css
+/* Default: Mobile */
+.container {
+  width: 100%;
+  padding: 1rem;
+}
+
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+    padding: 1.5rem;
+  }
+}
+
+/* Desktop: 1024px+ */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+    padding: 2rem;
+  }
+}
+\`\`\`
+```
+
+## 9. Create simple package.json:
+
+```json
+{
+  "name": "PROJECT_NAME",
+  "version": "0.1.0",
+  "description": "PROJECT_NAME - PROJECT_TYPE",
+  "type": "module",
+  "scripts": {
+    "ai:verify": "node scripts/ai/verify-environment.js",
+    "ai:status": "node scripts/ai/project-status.js",
+    "ai:next": "node scripts/ai/suggest-next.js",
+    "test:smoke": "node test/smoke/basic.test.js",
+    "dev": "echo 'No framework yet. Run: npm run ai:next'",
+    "build": "echo 'Add build process after framework selection'",
+    "test": "npm run test:smoke",
+    "clean": "rm -rf dist build .next out",
+    "lint": "echo 'Add linter when needed'",
+    "format": "echo 'Add formatter when needed'"
+  },
+  "keywords": ["PROJECT_TYPE", "PRIMARY_LANGUAGE"],
+  "devDependencies": {}
+}
+```
+
+## 10. Create AI scripts:
+
+### scripts/ai/verify-environment.js:
+```javascript
+#!/usr/bin/env node
+console.log('🔍 Verifying AI Development Environment...\n');
+
+const fs = require('fs');
+const checks = [
+  { file: 'CLAUDE.md', desc: 'AI guide' },
+  { file: 'COMMANDS.md', desc: 'Commands reference' },
+  { file: 'TESTING.md', desc: 'Test strategy' },
+  { file: '.ai/context.json', desc: 'AI context' },
+  { file: 'package.json', desc: 'Package config' }
+];
+
+let passed = 0;
+checks.forEach(({ file, desc }) => {
+  if (fs.existsSync(file)) {
+    console.log(`✅ ${desc}`);
+    passed++;
+  } else {
+    console.log(`❌ Missing: ${file}`);
+  }
+});
+
+console.log(`\n${passed}/${checks.length} checks passed`);
+process.exit(passed === checks.length ? 0 : 1);
+```
+
+### scripts/ai/suggest-next.js:
+```javascript
+#!/usr/bin/env node
+const fs = require('fs');
+const context = JSON.parse(fs.readFileSync('.ai/context.json', 'utf8'));
+
+console.log('\n🤔 Current stage:', context.stage.current);
+console.log('\n📍 Suggested next steps:\n');
+
+const suggestions = {
+  'skeleton': [
+    '1. Choose a framework (run for suggestions based on project type)',
+    '2. Set up development environment',
+    '3. Create first feature'
+  ],
+  'prototype': [
+    '1. Add core features',
+    '2. Set up database if needed',
+    '3. Add basic tests'
+  ],
+  'mvp': [
+    '1. Complete feature set',
+    '2. Add comprehensive tests',
+    '3. Set up CI/CD'
+  ]
+};
+
+suggestions[context.stage.current]?.forEach(step => console.log(step));
+
+if (context.projectType === 'web-app' && !context.stack.framework) {
+  console.log('\n🎯 Framework options for web-app:');
+  console.log('  • Vite: npm create vite@latest . -- --template vanilla-ts');
+  console.log('  • Next.js: npx create-next-app@latest . --typescript');
+  console.log('  • React: npm create vite@latest . -- --template react-ts');
+}
+
+console.log('\nAfter changes, update .ai/context.json');
+```
+
+## 11. Create test/smoke/basic.test.js:
+```javascript
+console.log('Running smoke tests...\n');
+
+const fs = require('fs');
+const tests = [];
+
+// Test 1: Essential files exist
+tests.push({
+  name: 'Essential files exist',
+  test: () => {
+    const files = ['CLAUDE.md', 'COMMANDS.md', '.ai/context.json'];
+    return files.every(f => fs.existsSync(f));
+  }
+});
+
+// Test 2: CLAUDE.md is lean
+tests.push({
+  name: 'CLAUDE.md is lean (<50 lines)',
+  test: () => {
+    const content = fs.readFileSync('CLAUDE.md', 'utf8');
+    return content.split('\n').length < 50;
+  }
+});
+
+// Run tests
+let passed = 0;
+tests.forEach(({ name, test }) => {
+  try {
+    if (test()) {
+      console.log(`✅ ${name}`);
+      passed++;
+    } else {
+      console.log(`❌ ${name}`);
+    }
+  } catch (e) {
+    console.log(`❌ ${name}: ${e.message}`);
+  }
+});
+
+console.log(`\n${passed}/${tests.length} smoke tests passed`);
+process.exit(passed === tests.length ? 0 : 1);
+```
+
+## 12. Create README.md:
+```markdown
+# PROJECT_NAME
+
+PROJECT_TYPE built with PRIMARY_LANGUAGE.
+
+## Quick Start
+
+\`\`\`bash
+# Verify setup
+npm run ai:verify
+
+# Get status
+npm run ai:status
+
+# Get next steps
+npm run ai:next
+
+# Start development
+npm run dev
+\`\`\`
+
+## Documentation
+
+- **AI Guide**: \`CLAUDE.md\`
+- **Commands**: \`COMMANDS.md\`
+- **Testing**: \`TESTING.md\`
+- **Features**: \`FEATURES.md\`
+
+## Project Structure
+
+See \`CLAUDE.md\` for complete structure.
+
+---
+*This is an AI-optimized project. Run \`npm run ai:next\` for guidance.*
+```
+
+## 13. Create .gitignore:
+```
+# Dependencies
+node_modules/
+vendor/
+*.lock
+package-lock.json
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Testing
+coverage/
+test/reports/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Temporary
+tmp/
+temp/
+```
+
+## 14. Initialize git repository:
+```bash
+git init
+git add .
+git commit -m "Initial commit: AI-optimized project structure"
