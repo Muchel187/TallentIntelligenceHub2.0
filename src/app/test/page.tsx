@@ -196,7 +196,7 @@ export default function TestPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="your@email.com"
               />
             </div>
@@ -211,7 +211,7 @@ export default function TestPage() {
                   max="100"
                   value={userDetails.age || ''}
                   onChange={(e) => setUserDetails({ ...userDetails, age: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
 
@@ -221,7 +221,7 @@ export default function TestPage() {
                   required
                   value={userDetails.experienceLevel || ''}
                   onChange={(e) => setUserDetails({ ...userDetails, experienceLevel: e.target.value as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 >
                   <option value="">Select...</option>
                   <option value="junior">Junior</option>
@@ -240,7 +240,7 @@ export default function TestPage() {
                 required
                 value={userDetails.currentJob || ''}
                 onChange={(e) => setUserDetails({ ...userDetails, currentJob: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="e.g., Software Engineer"
               />
             </div>
@@ -252,7 +252,7 @@ export default function TestPage() {
                 required
                 value={userDetails.industry || ''}
                 onChange={(e) => setUserDetails({ ...userDetails, industry: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="e.g., Technology"
               />
             </div>
@@ -263,7 +263,7 @@ export default function TestPage() {
                 required
                 value={userDetails.workEnvironment || ''}
                 onChange={(e) => setUserDetails({ ...userDetails, workEnvironment: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
               >
                 <option value="">Select...</option>
                 <option value="remote">Remote</option>
@@ -278,7 +278,7 @@ export default function TestPage() {
                 required
                 value={userDetails.careerGoal || ''}
                 onChange={(e) => setUserDetails({ ...userDetails, careerGoal: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 rows={3}
                 placeholder="What are your career aspirations?"
               />
@@ -290,7 +290,7 @@ export default function TestPage() {
                 required
                 value={userDetails.biggestChallenge || ''}
                 onChange={(e) => setUserDetails({ ...userDetails, biggestChallenge: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 rows={3}
                 placeholder="What's your biggest professional challenge?"
               />
@@ -302,7 +302,7 @@ export default function TestPage() {
                 type="text"
                 value={voucher}
                 onChange={(e) => setVoucher(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="Enter voucher code"
               />
             </div>
