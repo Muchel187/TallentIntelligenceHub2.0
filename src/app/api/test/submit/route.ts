@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { calculateBigFiveScores } from '@/core/big-five-scorer';
 import { nanoid } from 'nanoid';
+import { generatePersonalityReport } from '@/services/openai';
 
 // Validation schema
 const submitSchema = z.object({
@@ -123,6 +124,12 @@ export async function POST(request: NextRequest) {
       N: interpretScore(scores.N as number),
     };
 
+    // Generate AI-powered personality report in background (async, don't wait)
+    generateAIReport(testId, scores, data.userDetails).catch((error) => {
+      console.error('AI report generation failed:', error);
+      // Don't fail the submission if AI report fails
+    });
+
     // Send email with results link (async, don't wait)
     // TODO: Implement email service
     // sendTestCompleteEmail(data.email, testId).catch(console.error);
@@ -163,6 +170,40 @@ function interpretScore(score: number): 'low' | 'average' | 'high' {
   if (score < 60) return 'low';
   if (score > 90) return 'high';
   return 'average';
+}
+
+/**
+ * Generate AI-powered personality report and save to database
+ */
+async function generateAIReport(
+  testId: string,
+  scores: any,
+  userDetails: any
+): Promise<void> {
+  try {
+    // Check if any AI API key is configured
+    if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+      console.warn('No AI API key configured (GEMINI_API_KEY or OPENAI_API_KEY), skipping AI report generation');
+      return;
+    }
+
+    // Generate comprehensive AI report
+    const reportHtml = await generatePersonalityReport(scores, userDetails);
+
+    // Save report to database
+    await prisma.testResult.update({
+      where: { testId },
+      data: {
+        reportHtml,
+        reportGeneratedAt: new Date(),
+      },
+    });
+
+    console.log(`AI report generated successfully for test ${testId}`);
+  } catch (error) {
+    console.error('Failed to generate AI report:', error);
+    throw error;
+  }
 }
 
 /**

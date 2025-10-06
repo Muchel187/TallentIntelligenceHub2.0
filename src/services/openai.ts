@@ -208,11 +208,111 @@ export async function generatePersonalityReport(
   scores: BigFiveScores,
   userDetails: UserDetails
 ): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  // Try Gemini first, fallback to OpenAI
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('OpenAI API key not configured');
+  if (geminiKey) {
+    return generatePersonalityReportWithGemini(scores, userDetails, geminiKey);
   }
+
+  if (openaiKey) {
+    return generatePersonalityReportWithOpenAI(scores, userDetails, openaiKey);
+  }
+
+  throw new Error('No AI API key configured (GEMINI_API_KEY or OPENAI_API_KEY)');
+}
+
+/**
+ * Generate report using Google Gemini
+ */
+async function generatePersonalityReportWithGemini(
+  scores: BigFiveScores,
+  userDetails: UserDetails,
+  apiKey: string
+): Promise<string> {
+  const prompt = `Erstelle einen umfassenden, personalisierten Karriereentwicklungsbericht basierend auf diesem Big Five Persönlichkeitstest:
+
+**Persönlichkeitsprofil:**
+- Offenheit: ${scores.O}/120 (${interpretScore(scores.O)})
+- Gewissenhaftigkeit: ${scores.C}/120 (${interpretScore(scores.C)})
+- Extraversion: ${scores.E}/120 (${interpretScore(scores.E)})
+- Verträglichkeit: ${scores.A}/120 (${interpretScore(scores.A)})
+- Neurotizismus: ${scores.N}/120 (${interpretScore(scores.N)})
+
+**Beruflicher Kontext:**
+- Alter: ${userDetails.age}
+- Aktuelle Position: ${userDetails.currentJob}
+- Branche: ${userDetails.industry}
+- Erfahrungslevel: ${userDetails.experienceLevel}
+- Arbeitsumgebung: ${userDetails.workEnvironment}
+- Karriereziel: ${userDetails.careerGoal}
+- Größte Herausforderung: ${userDetails.biggestChallenge}
+
+Erstelle einen detaillierten Bericht mit folgenden Abschnitten:
+
+## 1. Zusammenfassung
+Kurzer Überblick über Persönlichkeitsstärken und Entwicklungsfelder
+
+## 2. Detaillierte Trait-Analyse
+Tiefgehende Analyse jeder Big Five Dimension mit spezifischen Beispielen relevant für ihre Branche
+
+## 3. Karriereempfehlungen
+Konkrete Rollentypen, Arbeitsumgebungen und Karrierepfade die zu diesem Profil passen
+
+## 4. Führung & Team-Dynamik
+Wie diese Persönlichkeit Führungsstil und Teamzusammenarbeit beeinflusst
+
+## 5. Entwicklungsplan
+Konkrete Handlungsschritte um Stärken zu nutzen und Herausforderungen anzugehen, speziell bezogen auf: ${userDetails.biggestChallenge}
+
+## 6. Ressourcen & Nächste Schritte
+Bücher, Kurse, Podcasts und Praktiken zugeschnitten auf dieses Profil
+
+Nutze einen professionellen aber ermutigenden Ton. Sei spezifisch und umsetzbar. Vermeide generische Floskeln.
+Formatiere in Markdown. Schreibe auf Deutsch. Der Bericht sollte 5-6 Seiten umfassen (ca. 2500-3000 Wörter).`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 8000,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || 'Gemini API request failed');
+    }
+
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate report using OpenAI
+ */
+async function generatePersonalityReportWithOpenAI(
+  scores: BigFiveScores,
+  userDetails: UserDetails,
+  apiKey: string
+): Promise<string> {
 
   const prompt = `Create a comprehensive, personalized career development report based on this Big Five personality assessment:
 

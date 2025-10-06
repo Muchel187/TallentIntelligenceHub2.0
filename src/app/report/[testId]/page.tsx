@@ -56,6 +56,37 @@ function getInterpretation(dimension: keyof typeof INTERPRETATIONS, score: numbe
   return INTERPRETATIONS[dimension][level];
 }
 
+/**
+ * Simple markdown to HTML converter
+ * Converts basic markdown to HTML for display
+ */
+function convertMarkdownToHtml(markdown: string): string {
+  let html = markdown
+    // Headers
+    .replace(/^### (.*$)/gim, '<h3 class="text-xl font-bold text-gray-900 mt-6 mb-3">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold text-gray-900 mt-8 mb-4">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-gray-900 mt-8 mb-4">$1</h1>')
+    // Bold
+    .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold text-gray-900">$1</strong>')
+    // Italic
+    .replace(/\*(.*?)\*/gim, '<em class="italic">$1</em>')
+    // Lists
+    .replace(/^\- (.*$)/gim, '<li class="ml-6 mb-2">$1</li>')
+    .replace(/^(\d+)\. (.*$)/gim, '<li class="ml-6 mb-2">$2</li>')
+    // Paragraphs
+    .replace(/\n\n/gim, '</p><p class="mb-4 leading-relaxed">')
+    // Line breaks
+    .replace(/\n/gim, '<br />');
+
+  // Wrap in paragraph tags
+  html = '<p class="mb-4 leading-relaxed">' + html + '</p>';
+
+  // Wrap lists
+  html = html.replace(/(<li.*?<\/li>)/gim, '<ul class="list-disc mb-4">$1</ul>');
+
+  return html;
+}
+
 export default async function ReportPage({ params }: PageProps) {
   const { testId } = await params;
   const result = await getTestResult(testId);
@@ -66,6 +97,7 @@ export default async function ReportPage({ params }: PageProps) {
 
   const scores = result.scores as any;
   const userDetails = result.userDetails as any;
+  const hasAIReport = result.reportHtml && result.reportHtml.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
@@ -73,10 +105,10 @@ export default async function ReportPage({ params }: PageProps) {
         {/* Header */}
         <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Your Big Five Personality Report
+            Ihr Big Five Persönlichkeitsbericht
           </h1>
           <p className="text-gray-600 mb-2">
-            Test completed on {new Date(result.completedAt).toLocaleDateString('en-US', {
+            Test abgeschlossen am {new Date(result.completedAt).toLocaleDateString('de-DE', {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -85,17 +117,45 @@ export default async function ReportPage({ params }: PageProps) {
           <p className="text-gray-600">
             Test ID: <span className="font-mono text-sm">{testId}</span>
           </p>
+          {!hasAIReport && (
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mt-0.5"></div>
+                <div>
+                  <p className="text-blue-900 font-medium">KI-Analyse wird generiert...</p>
+                  <p className="text-blue-700 text-sm">Ihr personalisierter Report wird gerade erstellt. Dies kann 1-2 Minuten dauern.</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Radar Chart */}
         <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Personality Profile</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Ihr Persönlichkeitsprofil</h2>
           <BigFiveChart scores={scores} />
         </div>
 
-        {/* Detailed Interpretations */}
-        <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Detailed Analysis</h2>
+        {/* AI-Generated Report */}
+        {hasAIReport && (
+          <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">KI-Gestützte Persönlichkeitsanalyse</h2>
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                Personalisiert
+              </span>
+            </div>
+            <div
+              className="prose prose-lg max-w-none text-gray-700"
+              dangerouslySetInnerHTML={{ __html: convertMarkdownToHtml(result.reportHtml) }}
+            />
+          </div>
+        )}
+
+        {/* Detailed Interpretations - Fallback if no AI report */}
+        {!hasAIReport && (
+          <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Detaillierte Analyse</h2>
           <div className="space-y-6">
             {/* Openness */}
             <div>
@@ -152,7 +212,8 @@ export default async function ReportPage({ params }: PageProps) {
               </p>
             </div>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Career Relevance */}
         <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
