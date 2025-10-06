@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --foreground-rgb: 0, 0, 0;
@@ -19,21 +17,13 @@ body {
   background: rgb(var(--background-rgb));
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Mobile-first responsive spacing */
+html {
+  font-size: 16px;
 }
 
-/* Mobile-first responsive spacing */
-@layer base {
+@media (min-width: 768px) {
   html {
-    @apply text-base;
-  }
-
-  @media (min-width: 768px) {
-    html {
-      @apply text-lg;
-    }
+    font-size: 18px;
   }
 }

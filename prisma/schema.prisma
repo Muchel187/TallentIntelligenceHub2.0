@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -41,12 +41,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String  @map("provider_account_id")
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String? 
+  access_token      String? 
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String? 
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -89,7 +89,7 @@ model TestResult {
   email              String
   paid               Boolean   @default(false)
   voucher            String?
-  reportHtml         String?   @db.Text @map("report_html")
+  reportHtml         String?    @map("report_html")
   reportGeneratedAt  DateTime? @map("report_generated_at")
 
   // Relations
@@ -137,7 +137,7 @@ model ChatHistory {
   id        Int      @id @default(autoincrement())
   testId    String   @map("test_id")
   role      String // 'user' | 'assistant' | 'system'
-  content   String   @db.Text
+  content   String   
   timestamp DateTime @default(now())
 
   testResult TestResult @relation(fields: [testId], references: [testId], onDelete: Cascade)
@@ -201,7 +201,7 @@ model CompanyAdmin {
   userId      String   @map("user_id")
   email       String
   role        String // 'owner' | 'admin' | 'hr_manager' | 'team_lead'
-  permissions Json     @default("[]") // Array of permission strings
+  permissions String   @default("[]") // Array of permission strings
   createdAt   DateTime @default(now()) @map("created_at")
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -308,7 +308,7 @@ model Objective {
   companyId    Int       @map("company_id")
   departmentId Int?      @map("department_id")
   title        String
-  description  String?   @db.Text
+  description  String?   
   targetDate   DateTime  @map("target_date")
   status       String    @default("not_started") // 'not_started' | 'in_progress' | 'completed' | 'cancelled'
   progress     Int       @default(0) // 0-100
@@ -327,7 +327,7 @@ model MoodSurvey {
   companyId  Int      @map("company_id")
   employeeId Int      @map("employee_id")
   moodScore  Int      @map("mood_score") // 1-10
-  feedback   String?  @db.Text
+  feedback   String?  
   surveyDate DateTime @map("survey_date")
   createdAt  DateTime @default(now()) @map("created_at")
 
@@ -341,9 +341,9 @@ model DevelopmentPlan {
   id             Int      @id @default(autoincrement())
   companyId      Int      @map("company_id")
   employeeId     Int      @map("employee_id")
-  skillGaps      Json     @default("[]") @map("skill_gaps") // Array of strings
+  skillGaps      String   @default("[]") @map("skill_gaps") // Array of strings
   trainingPlan   Json     @map("training_plan") // { courses: string[], timeline: string }
-  careerPath     String   @db.Text @map("career_path")
+  careerPath     String    @map("career_path")
   nextReviewDate DateTime @map("next_review_date")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
@@ -361,19 +361,19 @@ model TeamAnalytics {
   analysisDate         DateTime  @map("analysis_date")
   totalEmployees       Int       @map("total_employees")
   testsCompleted       Int       @map("tests_completed")
-  avgOpenness          Decimal   @map("avg_openness") @db.Decimal(5, 2)
-  avgConscientiousness Decimal   @map("avg_conscientiousness") @db.Decimal(5, 2)
-  avgExtraversion      Decimal   @map("avg_extraversion") @db.Decimal(5, 2)
-  avgAgreeableness     Decimal   @map("avg_agreeableness") @db.Decimal(5, 2)
-  avgNeuroticism       Decimal   @map("avg_neuroticism") @db.Decimal(5, 2)
-  moodScore            Decimal?  @map("mood_score") @db.Decimal(5, 2)
-  engagementLevel      Decimal?  @map("engagement_level") @db.Decimal(5, 2)
-  retentionRisk        Decimal?  @map("retention_risk") @db.Decimal(5, 2)
-  innovationPotential  Decimal?  @map("innovation_potential") @db.Decimal(5, 2)
-  leadershipReadiness  Decimal?  @map("leadership_readiness") @db.Decimal(5, 2)
-  teamStrengths        Json      @default("[]") @map("team_strengths") // Array of strings
-  teamChallenges       Json      @default("[]") @map("team_challenges") // Array of strings
-  recommendations      Json      @default("[]") // Array of strings
+  avgOpenness          Decimal   @map("avg_openness") 
+  avgConscientiousness Decimal   @map("avg_conscientiousness") 
+  avgExtraversion      Decimal   @map("avg_extraversion") 
+  avgAgreeableness     Decimal   @map("avg_agreeableness") 
+  avgNeuroticism       Decimal   @map("avg_neuroticism") 
+  moodScore            Decimal?  @map("mood_score") 
+  engagementLevel      Decimal?  @map("engagement_level") 
+  retentionRisk        Decimal?  @map("retention_risk") 
+  innovationPotential  Decimal?  @map("innovation_potential") 
+  leadershipReadiness  Decimal?  @map("leadership_readiness") 
+  teamStrengths        String    @default("[]") @map("team_strengths") // Array of strings
+  teamChallenges       String    @default("[]") @map("team_challenges") // Array of strings
+  recommendations      String    @default("[]") // Array of strings
   createdAt            DateTime  @default(now()) @map("created_at")
 
   company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -391,12 +391,12 @@ model Integration {
   companyId         Int       @map("company_id")
   integrationType   String    @map("integration_type") // 'slack' | 'microsoft' | 'google' | 'personio' | 'jira' | 'other'
   integrationName   String    @map("integration_name")
-  credentials       String    @db.Text // AES-256 encrypted JSON
-  config            Json      @default("{}") // { syncFrequency, enabledFeatures, etc. }
+  credentials       String     // AES-256 encrypted JSON
+  config            String    @default("{}") // { syncFrequency, enabledFeatures, etc. }
   isActive          Boolean   @default(false) @map("is_active")
   connectionStatus  String    @default("disconnected") @map("connection_status") // 'connected' | 'disconnected' | 'error'
   lastSyncAt        DateTime? @map("last_sync_at")
-  lastError         String?   @db.Text @map("last_error")
+  lastError         String?    @map("last_error")
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @updatedAt @map("updated_at")
   createdBy         String    @map("created_by")
@@ -415,9 +415,9 @@ model Webhook {
   id               Int       @id @default(autoincrement())
   companyId        Int       @map("company_id")
   integrationId    Int       @map("integration_id")
-  webhookUrl       String    @map("webhook_url") @db.VarChar(500)
+  webhookUrl       String    @map("webhook_url") 
   webhookSecret    String    @map("webhook_secret")
-  events           Json      @default("[]") // Array: ["employee.added", "test.completed"]
+  events           String    @default("[]") // Array: ["employee.added", "test.completed"]
   isActive         Boolean   @default(true) @map("is_active")
   lastTriggeredAt  DateTime? @map("last_triggered_at")
   failureCount     Int       @default(0) @map("failure_count")
@@ -433,7 +433,7 @@ model IntegrationLog {
   id            Int      @id @default(autoincrement())
   companyId     Int      @map("company_id")
   integrationId Int      @map("integration_id")
-  action        String   @db.VarChar(100)
+  action        String   
   details       Json
   status        String // 'success' | 'error'
   createdAt     DateTime @default(now()) @map("created_at")
@@ -451,8 +451,8 @@ model IntegrationLog {
 
 model Voucher {
   id          Int      @id @default(autoincrement())
-  code        String   @unique @db.VarChar(50)
-  description String?  @db.Text
+  code        String   @unique 
+  description String?  
   validUntil  DateTime @map("valid_until")
   maxUses     Int      @map("max_uses")
   currentUses Int      @default(0) @map("current_uses")

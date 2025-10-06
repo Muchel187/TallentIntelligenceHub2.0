@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Strict mode for better development experience
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+
+  // Performance optimizations
+  swcMinify: true,
 
   // Image optimization
   images: {
@@ -20,7 +24,7 @@ const nextConfig = {
     NEXT_PUBLIC_APP_NAME: 'NOBA EXPERTS',
   },
 
-  // Headers for security
+  // Security headers
   async headers() {
     return [
       {
@@ -28,27 +32,40 @@ const nextConfig = {
         headers: [
           {
             key: 'X-DNS-Prefetch-Control',
-            value: 'on'
+            value: 'on',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
           },
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-Content-Type-Options',
-            value: 'nosniff'
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
-          }
-        ]
-      }
+            value: 'origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
     ];
   },
 
-  // Webpack configuration for bundle analysis
+  // Webpack optimizations
   webpack: (config, { isServer }) => {
+    // Bundle analyzer (npm run analyze)
     if (process.env.ANALYZE) {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       config.plugins.push(
@@ -60,8 +77,25 @@ const nextConfig = {
         })
       );
     }
+
+    // Fallbacks for server-only modules
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+
     return config;
+  },
+
+  // Experimental features for production optimization
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@prisma/client', 'zod'],
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

@@ -54,7 +54,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto text-center">
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">119</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">120</div>
               <div className="text-blue-100">Fragen</div>
             </div>
             <div>
