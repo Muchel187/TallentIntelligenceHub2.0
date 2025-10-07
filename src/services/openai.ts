@@ -104,11 +104,19 @@ export async function generateStreamingChatResponse(
   userDetails: UserDetails,
   chatHistory: ChatMessage[] = []
 ): Promise<ReadableStream> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('OpenAI API key not configured');
+  if (!geminiKey && !openaiKey) {
+    throw new Error('No AI API key configured (GEMINI_API_KEY or OPENAI_API_KEY)');
   }
+
+  // Use Gemini if available, otherwise OpenAI
+  if (geminiKey) {
+    return generateStreamingChatWithGemini(message, scores, userDetails, chatHistory, geminiKey);
+  }
+
+  const apiKey = openaiKey!;
 
   const systemPrompt = `You are an expert career coach and personality psychologist.
 You are helping a professional with the following Big Five personality profile:
@@ -202,6 +210,105 @@ Be encouraging but honest. Use concrete examples when possible.`;
 }
 
 /**
+ * Generate streaming chat response with Gemini
+ */
+async function generateStreamingChatWithGemini(
+  message: string,
+  scores: BigFiveScores,
+  userDetails: UserDetails,
+  chatHistory: ChatMessage[],
+  apiKey: string
+): Promise<ReadableStream> {
+  const systemContext = `Du bist ein erfahrener Karriere-Coach und Persönlichkeitspsychologe.
+Du hilfst einem Berufstätigen mit folgendem Big Five Persönlichkeitsprofil:
+- Offenheit: ${scores.O} (${interpretScore(scores.O)})
+- Gewissenhaftigkeit: ${scores.C} (${interpretScore(scores.C)})
+- Extraversion: ${scores.E} (${interpretScore(scores.E)})
+- Verträglichkeit: ${scores.A} (${interpretScore(scores.A)})
+- Neurotizismus: ${scores.N} (${interpretScore(scores.N)})
+
+Hintergrund:
+- Position: ${userDetails.currentJob}
+- Branche: ${userDetails.industry}
+- Erfahrung: ${userDetails.experienceLevel}
+- Arbeitsumgebung: ${userDetails.workEnvironment}
+- Karriereziel: ${userDetails.careerGoal}
+- Größte Herausforderung: ${userDetails.biggestChallenge}
+
+Gib spezifische, umsetzbare Ratschläge basierend auf den Persönlichkeitsmerkmalen und dem beruflichen Kontext.
+Antworte auf Deutsch, professionell aber freundlich.`;
+
+  // Build conversation history
+  const conversationText = chatHistory.length > 0
+    ? chatHistory.map(msg => `${msg.role === 'user' ? 'Nutzer' : 'Coach'}: ${msg.content}`).join('\n')
+    : '';
+
+  const fullPrompt = `${systemContext}\n\n${conversationText ? conversationText + '\n\n' : ''}Nutzer: ${message}\nCoach:`;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: fullPrompt }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'Gemini API request failed');
+  }
+
+  // Convert Gemini streaming response to simple text stream
+  return new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const reader = response.body?.getReader();
+
+      if (!reader) {
+        controller.error(new Error('No response body'));
+        return;
+      }
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter((line) => line.trim() !== '');
+
+          for (const line of lines) {
+            try {
+              const parsed = JSON.parse(line);
+              const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (content) {
+                controller.enqueue(encoder.encode(content));
+              }
+            } catch (e) {
+              // Skip invalid JSON
+            }
+          }
+        }
+      } catch (error) {
+        controller.error(error);
+      } finally {
+        controller.close();
+      }
+    },
+  });
+}
+
+/**
  * Generate comprehensive personality report
  */
 export async function generatePersonalityReport(
@@ -274,7 +381,7 @@ Formatiere in Markdown. Schreibe auf Deutsch. Der Bericht sollte 5-6 Seiten umfa
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

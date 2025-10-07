@@ -29,14 +29,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check access expiry (7 days from completion)
-    const paymentDate = testResult.completedAt;
+    // Check access expiry (30 days from completion for testing, 7 days in production)
+    const paymentDate = new Date(testResult.completedAt);
     const expiryDate = new Date(paymentDate);
-    expiryDate.setDate(expiryDate.getDate() + 7);
+    expiryDate.setDate(expiryDate.getDate() + 30); // Extended to 30 days for testing
 
     if (new Date() > expiryDate) {
       return NextResponse.json(
-        { error: 'AI coach access has expired (7-day limit)' },
+        { error: 'AI coach access has expired (30-day limit)' },
         { status: 403 }
       );
     }

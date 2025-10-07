@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import Stripe from 'stripe';
 
 const checkoutSchema = z.object({
   testId: z.string(),
@@ -17,18 +18,20 @@ const checkoutSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    // Note: This requires Stripe to be installed: npm install stripe
-    // For now, this is a placeholder implementation
-
     const body = await request.json();
     const data = checkoutSchema.parse(body);
 
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return NextResponse.json({
+        error: 'Stripe not configured',
+        message: 'STRIPE_SECRET_KEY is missing in environment variables',
+      }, { status: 503 });
+    }
+
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
-    // TODO: Implement Stripe checkout
-    /*
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2023-10-16',
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-12-18.acacia',
     });
 
     const session = await stripe.checkout.sessions.create({
@@ -40,7 +43,7 @@ export async function POST(request: NextRequest) {
             currency: 'eur',
             product_data: {
               name: 'NOBA EXPERTS Premium Report',
-              description: 'Full personality report with AI coaching',
+              description: 'Vollständiger Persönlichkeitsbericht mit KI-Coaching',
             },
             unit_amount: 4900, // 49.00 EUR in cents
           },
@@ -59,13 +62,6 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
       url: session.url,
     });
-    */
-
-    // Placeholder response
-    return NextResponse.json({
-      error: 'Stripe integration not yet configured',
-      message: 'Install Stripe SDK and configure STRIPE_SECRET_KEY',
-    }, { status: 501 });
   } catch (error) {
     console.error('Checkout error:', error);
 

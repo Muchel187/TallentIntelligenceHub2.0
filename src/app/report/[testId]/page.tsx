@@ -222,10 +222,10 @@ export default async function ReportPage({ params }: PageProps) {
             <div>
               <h4 className="font-semibold text-gray-900 mb-2">Your Profile</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div><span className="text-gray-600">Current Role:</span> <span className="font-medium">{userDetails.currentJob}</span></div>
-                <div><span className="text-gray-600">Industry:</span> <span className="font-medium">{userDetails.industry}</span></div>
-                <div><span className="text-gray-600">Experience:</span> <span className="font-medium">{userDetails.experienceLevel}</span></div>
-                <div><span className="text-gray-600">Work Environment:</span> <span className="font-medium">{userDetails.workEnvironment}</span></div>
+                <div><span className="text-gray-600">Current Role:</span> <span className="font-medium text-gray-900">{userDetails.currentJob}</span></div>
+                <div><span className="text-gray-600">Industry:</span> <span className="font-medium text-gray-900">{userDetails.industry}</span></div>
+                <div><span className="text-gray-600">Experience:</span> <span className="font-medium text-gray-900">{userDetails.experienceLevel}</span></div>
+                <div><span className="text-gray-600">Work Environment:</span> <span className="font-medium text-gray-900">{userDetails.workEnvironment}</span></div>
               </div>
             </div>
             <div>

@@ -9,6 +9,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
+import { sendInvitationEmail } from '@/lib/email';
 
 const singleInviteSchema = z.object({
   email: z.string().email(),
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate invitation token
-    const invitationToken = nanoid(32);
+    const token = nanoid(32);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
@@ -93,20 +94,30 @@ export async function POST(request: NextRequest) {
       data: {
         companyId: companyAdmin.companyId,
         email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        position: data.position || null,
-        departmentId: data.departmentId || null,
-        invitationToken,
+        token,
         expiresAt,
-        status: 'pending',
+        createdBy: session.user.email,
       },
     });
 
-    // Send invitation email (async, don't wait)
-    // TODO: Implement email service
-    const invitationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/test?token=${invitationToken}`;
-    console.log(`Invitation URL for ${data.email}: ${invitationUrl}`);
+    // Send invitation email via Resend
+    const invitationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/test?token=${token}`;
+
+    if (process.env.RESEND_API_KEY) {
+      try {
+        await sendInvitationEmail({
+          to: data.email,
+          firstName: data.firstName || '',
+          companyName: companyAdmin.company.name,
+          invitationUrl,
+        });
+      } catch (emailError) {
+        console.error('Failed to send invitation email:', emailError);
+        // Don't fail the request if email fails
+      }
+    } else {
+      console.log(`Invitation URL for ${data.email}: ${invitationUrl}`);
+    }
 
     // sendInvitationEmail(data.email, {
     //   firstName: data.firstName,

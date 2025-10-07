@@ -7,6 +7,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { QuestionCard } from '@/components/test/QuestionCard';
 import { questions } from '@/core/questions';
 
@@ -26,6 +27,7 @@ interface UserDetails {
 }
 
 export default function TestPage() {
+  const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState<'intro' | 'details' | 'questions' | 'submitting'>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -36,6 +38,13 @@ export default function TestPage() {
 
   // Calculate progress percentage
   const progress = Math.round((answers.length / questions.length) * 100);
+
+  // Pre-fill email from session
+  useEffect(() => {
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
+  }, [session]);
 
   // Load saved progress on mount
   useEffect(() => {

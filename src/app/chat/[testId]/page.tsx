@@ -55,7 +55,7 @@ export default function ChatTestPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages,
+          message: userMessage,
           testId,
         }),
       });
@@ -65,15 +65,35 @@ export default function ChatTestPage() {
         throw new Error(data.error || 'Chat failed');
       }
 
-      const data = await response.json();
+      // Read streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-      // Add assistant response
-      setMessages([...newMessages, { role: 'assistant', content: data.message }]);
+      if (!reader) {
+        throw new Error('No response stream');
+      }
+
+      let assistantMessage = '';
+
+      // Add placeholder message for streaming
+      setMessages([...newMessages, { role: 'assistant', content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        assistantMessage += chunk;
+
+        // Update the last message with accumulated content
+        setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
+      }
+
+      setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Chat failed');
       // Remove the user message if request failed
       setMessages(messages);
-    } finally {
       setLoading(false);
     }
   };

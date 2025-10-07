@@ -180,7 +180,7 @@ export default function InviteEmployeePage() {
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function InviteEmployeePage() {
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function InviteEmployeePage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   placeholder="mitarbeiter@firma.de"
                 />
               </div>
@@ -219,7 +219,7 @@ export default function InviteEmployeePage() {
                   type="text"
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   placeholder="z.B. Software Engineer"
                 />
               </div>
@@ -251,7 +251,7 @@ export default function InviteEmployeePage() {
                   value={bulkEmails}
                   onChange={(e) => setBulkEmails(e.target.value)}
                   rows={10}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm text-gray-900"
                   placeholder="mitarbeiter1@firma.de, mitarbeiter2@firma.de&#10;mitarbeiter3@firma.de&#10;mitarbeiter4@firma.de"
                 />
                 <p className="text-sm text-gray-600 mt-2">
