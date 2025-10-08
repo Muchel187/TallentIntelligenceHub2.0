@@ -85,8 +85,12 @@ export default function ChatTestPage() {
         const chunk = decoder.decode(value);
         assistantMessage += chunk;
 
-        // Update the last message with accumulated content
-        setMessages([...newMessages, { role: 'assistant', content: assistantMessage }]);
+        // Update the last message with accumulated content using functional update
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { role: 'assistant', content: assistantMessage };
+          return updated;
+        });
       }
 
       setLoading(false);
