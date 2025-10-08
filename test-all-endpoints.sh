@@ -94,8 +94,8 @@ echo ""
 # ============================================
 echo -e "${YELLOW}[2] Testing Authentication...${NC}"
 
-# Get CSRF token
-csrf_response=$(curl -s "$BASE_URL/api/auth/csrf")
+# Get CSRF token and save cookies
+csrf_response=$(curl -s -c /tmp/cookies.txt "$BASE_URL/api/auth/csrf")
 csrf_token=$(echo "$csrf_response" | grep -o '"csrfToken":"[^"]*"' | cut -d'"' -f4)
 
 if [ -n "$csrf_token" ]; then
@@ -104,21 +104,23 @@ else
     print_test "Get CSRF Token" "FAIL" "No CSRF token received"
 fi
 
-# Login
+# Login with cookies
 login_response=$(curl -s -i -X POST "$BASE_URL/api/auth/callback/credentials" \
+    -b /tmp/cookies.txt \
+    -c /tmp/cookies.txt \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "csrfToken=$csrf_token&email=$TEST_EMAIL&password=$TEST_PASSWORD&redirect=false&json=true")
 
-if echo "$login_response" | grep -q "200 OK"; then
+if echo "$login_response" | grep -q "302"; then
     print_test "Login (POST /api/auth/callback/credentials)" "PASS"
     extract_session "$login_response"
 else
-    print_test "Login (POST /api/auth/callback/credentials)" "FAIL" "Login failed"
+    print_test "Login (POST /api/auth/callback/credentials)" "FAIL" "No redirect (expected 302)"
 fi
 
 # Get session
-if [ -n "$SESSION_COOKIE" ]; then
-    session_response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/api/auth/session")
+if [ -f /tmp/cookies.txt ]; then
+    session_response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/api/auth/session")
     status_code=$(echo "$session_response" | tail -n 1)
 
     if [ "$status_code" == "200" ] && echo "$session_response" | grep -q "$TEST_EMAIL"; then
@@ -135,9 +137,9 @@ echo ""
 # ============================================
 echo -e "${YELLOW}[3] Testing Protected Pages...${NC}"
 
-if [ -n "$SESSION_COOKIE" ]; then
+if [ -f /tmp/cookies.txt ]; then
     # Dashboard
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/dashboard")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/dashboard")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Dashboard (/dashboard)" "PASS"
@@ -146,7 +148,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     fi
 
     # Reports
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/reports")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/reports")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Reports (/reports)" "PASS"
@@ -155,7 +157,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     fi
 
     # Company Dashboard
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/dashboard/company")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/dashboard/company")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Company Dashboard (/dashboard/company)" "PASS"
@@ -164,7 +166,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     fi
 
     # Admin Dashboard
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/admin")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/admin")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Admin Dashboard (/admin)" "PASS"
@@ -174,7 +176,7 @@ if [ -n "$SESSION_COOKIE" ]; then
         print_test "Admin Dashboard (/admin)" "FAIL" "HTTP $status_code"
     fi
 else
-    print_test "Protected Pages" "FAIL" "No session cookie - cannot test"
+    print_test "Protected Pages" "FAIL" "No cookies - cannot test"
 fi
 
 echo ""
@@ -184,9 +186,9 @@ echo ""
 # ============================================
 echo -e "${YELLOW}[4] Testing API Endpoints...${NC}"
 
-if [ -n "$SESSION_COOKIE" ]; then
+if [ -f /tmp/cookies.txt ]; then
     # Get reports
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/api/reports")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/api/reports")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "API: Get Reports (GET /api/reports)" "PASS"
@@ -195,7 +197,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     fi
 
     # Get specific report
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/report/$TEST_ID")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/report/$TEST_ID")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "API: Get Specific Report (GET /report/$TEST_ID)" "PASS"
@@ -204,7 +206,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     fi
 
     # Company stats
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/api/company/stats")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/api/company/stats")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "API: Company Stats (GET /api/company/stats)" "PASS"
@@ -213,7 +215,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     fi
 
     # Analytics team
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/api/analytics/team")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/api/analytics/team")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "API: Team Analytics (GET /api/analytics/team)" "PASS"
@@ -229,9 +231,9 @@ echo ""
 # ============================================
 echo -e "${YELLOW}[5] Testing AI Chat...${NC}"
 
-if [ -n "$SESSION_COOKIE" ]; then
+if [ -f /tmp/cookies.txt ]; then
     # Access chat page
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/chat/$TEST_ID")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/chat/$TEST_ID")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Chat Page (GET /chat/$TEST_ID)" "PASS"
@@ -242,7 +244,7 @@ if [ -n "$SESSION_COOKIE" ]; then
     # Test chat stream endpoint
     chat_payload='{"testId":"'$TEST_ID'","message":"Hallo, wie geht es?"}'
     response=$(curl -s -w "\n%{http_code}" -X POST \
-        -b "next-auth.session-token=$SESSION_COOKIE" \
+        -b /tmp/cookies.txt \
         -H "Content-Type: application/json" \
         -d "$chat_payload" \
         "$BASE_URL/api/chat/stream" \
@@ -268,9 +270,9 @@ echo ""
 # ============================================
 echo -e "${YELLOW}[6] Testing Payment & Checkout...${NC}"
 
-if [ -n "$SESSION_COOKIE" ]; then
+if [ -f /tmp/cookies.txt ]; then
     # Access checkout page
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/payment/checkout?testId=$TEST_ID")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/payment/checkout?testId=$TEST_ID")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Checkout Page (GET /payment/checkout)" "PASS"
@@ -278,10 +280,10 @@ if [ -n "$SESSION_COOKIE" ]; then
         print_test "Checkout Page (GET /payment/checkout)" "FAIL" "HTTP $status_code"
     fi
 
-    # Test create checkout endpoint (will fail without Stripe key, that's expected)
+    # Test create checkout endpoint
     checkout_payload='{"testId":"'$TEST_ID'","email":"'$TEST_EMAIL'"}'
     response=$(curl -s -w "\n%{http_code}" -X POST \
-        -b "next-auth.session-token=$SESSION_COOKIE" \
+        -b /tmp/cookies.txt \
         -H "Content-Type: application/json" \
         -d "$checkout_payload" \
         "$BASE_URL/api/payment/create-checkout")
@@ -304,9 +306,9 @@ echo ""
 # ============================================
 echo -e "${YELLOW}[7] Testing Employee Invitation...${NC}"
 
-if [ -n "$SESSION_COOKIE" ]; then
+if [ -f /tmp/cookies.txt ]; then
     # Access invite page
-    response=$(curl -s -w "\n%{http_code}" -b "next-auth.session-token=$SESSION_COOKIE" "$BASE_URL/dashboard/company/employees/invite")
+    response=$(curl -s -w "\n%{http_code}" -b /tmp/cookies.txt "$BASE_URL/dashboard/company/employees/invite")
     status_code=$(echo "$response" | tail -n 1)
     if [ "$status_code" == "200" ]; then
         print_test "Invite Page (GET /dashboard/company/employees/invite)" "PASS"

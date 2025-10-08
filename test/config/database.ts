@@ -69,30 +69,42 @@ export async function setupTestDatabase(): Promise<void> {
 export async function cleanTestDatabase(): Promise<void> {
   const db = getTestDb();
 
+  // Helper to safely delete from tables that may not exist
+  const safeDelete = async (deleteFn: () => Promise<any>) => {
+    try {
+      await deleteFn();
+    } catch (error: any) {
+      // Ignore "table does not exist" errors
+      if (!error.message?.includes('does not exist')) {
+        throw error;
+      }
+    }
+  };
+
   // Delete in correct order to respect foreign key constraints
-  await db.integrationLog.deleteMany();
-  await db.webhook.deleteMany();
-  await db.integration.deleteMany();
-  await db.teamAnalytics.deleteMany();
-  await db.developmentPlan.deleteMany();
-  await db.moodSurvey.deleteMany();
-  await db.objective.deleteMany();
-  await db.employeeTest.deleteMany();
-  await db.employeeInvitation.deleteMany();
-  await db.employee.deleteMany();
-  await db.department.deleteMany();
-  await db.companyAdmin.deleteMany();
-  await db.company.deleteMany();
-  await db.chatAccess.deleteMany();
-  await db.chatHistory.deleteMany();
-  await db.userTestLink.deleteMany();
-  await db.testProgress.deleteMany();
-  await db.testResult.deleteMany();
-  await db.account.deleteMany();
-  await db.session.deleteMany();
-  await db.user.deleteMany();
-  await db.verificationToken.deleteMany();
-  await db.voucher.deleteMany();
+  await safeDelete(() => db.integrationLog.deleteMany());
+  await safeDelete(() => db.webhook.deleteMany());
+  await safeDelete(() => db.integration.deleteMany());
+  await safeDelete(() => db.teamAnalytics.deleteMany());
+  await safeDelete(() => db.developmentPlan.deleteMany());
+  await safeDelete(() => db.moodSurvey.deleteMany());
+  await safeDelete(() => db.objective.deleteMany());
+  await safeDelete(() => db.employeeTest.deleteMany());
+  await safeDelete(() => db.employeeInvitation.deleteMany());
+  await safeDelete(() => db.employee.deleteMany());
+  await safeDelete(() => db.department.deleteMany());
+  await safeDelete(() => db.companyAdmin.deleteMany());
+  await safeDelete(() => db.company.deleteMany());
+  await safeDelete(() => db.chatAccess.deleteMany());
+  await safeDelete(() => db.chatHistory.deleteMany());
+  await safeDelete(() => db.userTestLink.deleteMany());
+  await safeDelete(() => db.testProgress.deleteMany());
+  await safeDelete(() => db.testResult.deleteMany());
+  await safeDelete(() => db.account.deleteMany());
+  await safeDelete(() => db.session.deleteMany());
+  await safeDelete(() => db.user.deleteMany());
+  await safeDelete(() => db.verificationToken.deleteMany());
+  await safeDelete(() => db.voucher.deleteMany());
 }
 
 /**
